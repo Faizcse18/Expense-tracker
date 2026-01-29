@@ -1,0 +1,374 @@
+/* ========================================
+   GLOBAL STYLES & ANIMATIONS
+   ======================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    line-height: 1.6;
+    color: #e2e8f0;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+}
+
+
+/* ========================================
+   TYPOGRAPHY
+   ======================================== */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+}
+
+h1 {
+    font-size: 3.75rem;
+}
+
+h2 {
+    font-size: 2.25rem;
+}
+
+h3 {
+    font-size: 1.875rem;
+}
+
+p {
+    color: #cbd5e1;
+}
+
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes glow {
+    0%,
+    100% {
+        box-shadow: 0 0 20px rgba(96, 165, 250, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(96, 165, 250, 0.6);
+    }
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+
+/* ========================================
+   FORMS & INPUTS
+   ======================================== */
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+textarea,
+select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 0.5rem;
+    color: #e2e8f0;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+input[type="date"]:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    background-color: #0f172a;
+}
+
+input[type="number"]::placeholder,
+input[type="text"]::placeholder {
+    color: #64748b;
+}
+
+
+/* ========================================
+   BUTTONS & NAVIGATION
+   ======================================== */
+
+button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    transition: left 0.3s ease;
+    z-index: -1;
+}
+
+button:hover::before {
+    left: 100%;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+
+/* Navigation Buttons */
+
+.nav-btn {
+    padding: 0.5rem 1.25rem;
+    color: #94a3b8;
+    background: transparent;
+    border-radius: 0.75rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.nav-btn::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background: linear-gradient(to right, #a855f7, #ec4899);
+    transition: width 0.3s ease;
+}
+
+.nav-btn:hover {
+    color: #e2e8f0;
+    background: rgba(148, 163, 184, 0.1);
+}
+
+.nav-btn:hover::after {
+    width: 80%;
+}
+
+.nav-btn.active {
+    color: #f1f5f9;
+    background: rgba(168, 85, 247, 0.15);
+}
+
+.nav-btn.active::after {
+    width: 100%;
+}
+
+
+/* ========================================
+   CARDS & CONTAINERS
+   ======================================== */
+
+.card {
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    border-color: #475569;
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+    transform: translateY(-4px);
+}
+
+
+/* Expense Card Styling */
+
+.expense-card {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.6));
+    border: 1px solid #334155;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.expense-card:hover {
+    border-color: #475569;
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
+    transform: translateY(-2px);
+}
+
+
+/* Stat Card Styling */
+
+.stat-card {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.7));
+    border: 1px solid #334155;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+}
+
+
+/* ========================================
+   SHADOWS & DEPTH
+   ======================================== */
+
+.shadow-sm {
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+.shadow-md {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+.shadow-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+.shadow-xl {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+
+/* ========================================
+   UTILITIES
+   ======================================== */
+
+.container {
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.fade-in {
+    animation: fadeInUp 0.6s ease-out forwards;
+    opacity: 0;
+}
+
+.fade-in-delayed {
+    animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.slide-down {
+    animation: slideDown 0.5s ease-out;
+}
+
+.page-content {
+    animation: fadeInUp 0.4s ease-out;
+}
+
+.page-content.hidden {
+    display: none;
+}
+
+.glow-effect {
+    animation: glow 2s ease-in-out infinite;
+}
+
+.pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.text-gradient {
+    background: linear-gradient(to right, #60a5fa, #06b6d4);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.backdrop-blur {
+    backdrop-filter: blur(10px);
+}
+
+
+/* ========================================
+   SCROLLBAR STYLING
+   ======================================== */
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+}

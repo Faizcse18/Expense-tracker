@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinTracker Pro - Expense Management</title>
+    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-100">
+    <!-- Navigation -->
+    <nav class="border-b border-slate-800 bg-slate-900 sticky top-0 z-50 shadow-xl">
+        <div class="max-w-7xl mx-auto px-6 py-5">
+            <div class="flex items-center justify-between">
+                <h1 class="text-2xl font-bold" style="background: linear-gradient(to right, #a855f7, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">FinTracker</h1>
+                <div class="flex gap-2">
+                    <button onclick="switchPage('dashboard')" class="nav-btn active" data-page="dashboard">Dashboard</button>
+                    <button onclick="switchPage('expenses')" class="nav-btn" data-page="expenses">Expenses</button>
+                    <button onclick="switchPage('analytics')" class="nav-btn" data-page="analytics">Analytics</button>
+                    <button onclick="switchPage('budgets')" class="nav-btn" data-page="budgets">Budgets</button>
+                    <button onclick="switchPage('goals')" class="nav-btn" data-page="goals">Goals</button>
+                    <button onclick="switchPage('settings')" class="nav-btn" data-page="settings">Settings</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-6 py-12">
+        
+        <!-- Dashboard Page -->
+        <div id="dashboard-page" class="page-content">
+            <div class="mb-12">
+                <h1 class="text-4xl font-bold mb-2">Dashboard</h1>
+                <p class="text-slate-400">Your financial overview at a glance</p>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 fade-in">
+                    <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">Total Spent</p>
+                    <p class="text-5xl font-bold text-green-400 mt-3" id="dashTotal">₹0.00</p>
+                </div>
+                <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 fade-in" style="animation-delay: 0.1s;">
+                    <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">Transactions</p>
+                    <p class="text-5xl font-bold text-blue-400 mt-3" id="dashCount">0</p>
+                </div>
+                <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 fade-in" style="animation-delay: 0.2s;">
+                    <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">Average</p>
+                    <p class="text-5xl font-bold text-cyan-400 mt-3" id="dashAverage">₹0.00</p>
+                </div>
+                <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 fade-in" style="animation-delay: 0.3s;">
+                    <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">This Month</p>
+                    <p class="text-5xl font-bold text-purple-400 mt-3" id="dashMonth">₹0.00</p>
+                </div>
+            </div>
+
+            <!-- Recent Expenses & Budget Status -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div>
+                    <h2 class="text-2xl font-bold mb-6">Recent Expenses</h2>
+                    <div id="dashRecentExpenses" class="space-y-3">
+                        <div class="flex items-center justify-center h-32"><p class="text-slate-500">Loading...</p></div>
+                    </div>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold mb-6">Budget Status</h2>
+                    <div id="dashBudgetStatus" class="space-y-3">
+                        <div class="flex items-center justify-center h-32"><p class="text-slate-500">Loading...</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expenses Page -->
+        <div id="expenses-page" class="page-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+                <!-- Add Expense Form -->
+                <div class="lg:col-span-1">
+                    <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-2xl p-8 sticky top-24 shadow-2xl hover:shadow-2xl transition-all duration-300">
+                        <h2 class="text-2xl font-bold mb-3">Log Expense</h2>
+                        <p class="text-slate-400 mb-8 text-sm">Add a new expense entry</p>
+                        
+                        <form id="expenseForm" class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-semibold mb-3 text-slate-300">Amount</label>
+                                <div class="relative">
+                                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-medium">₹</span>
+                                    <input type="number" id="amount" placeholder="0.00" step="0.01" required 
+                                        class="w-full pl-8 pr-4 py-4 bg-slate-800 border border-slate-700 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition text-white placeholder-slate-600">
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-semibold mb-3 text-slate-300">Category</label>
+                                <input type="text" id="category" placeholder="e.g. Food, Travel" required 
+                                    class="w-full px-4 py-4 bg-slate-800 border border-slate-700 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition text-white placeholder-slate-600">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold mb-3 text-slate-300">Notes (Optional)</label>
+                                <textarea id="notes" placeholder="Add details..." rows="3"
+                                    class="w-full px-4 py-4 bg-slate-800 border border-slate-700 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition text-white placeholder-slate-600"></textarea>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold mb-3 text-slate-300">Recurring?</label>
+                                <select id="recurring" class="w-full px-4 py-4 bg-slate-800 border border-slate-700 rounded-lg focus:border-blue-500 outline-none transition text-white">
+                                    <option value="">No</option>
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                </select>
+                            </div>
+                            
+                            <button type="submit" style="background: linear-gradient(to right, #a855f7, #ec4899);" class="w-full text-white font-semibold py-4 rounded-lg transition transform hover:scale-105 active:scale-95 shadow-lg mt-8" onmouseover="this.style.background='linear-gradient(to right, #9333ea, #db2777)'" onmouseout="this.style.background='linear-gradient(to right, #a855f7, #ec4899)'">
+                                Add Expense
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Expenses List -->
+                <div class="lg:col-span-2">
+                    <div class="space-y-6">
+                        <!-- Filters -->
+                        <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl p-6 shadow-lg">
+                            <h3 class="text-lg font-bold mb-4 text-slate-100">Filters</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <input type="text" id="filterCategory" placeholder="Filter by category" 
+                                    class="px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition">
+                                <input type="date" id="filterStartDate" 
+                                    class="px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition">
+                                <input type="date" id="filterEndDate" 
+                                    class="px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition">
+                                <button onclick="applyFilters()" style="background: linear-gradient(to right, #2563eb, #1d4ed8);" class="md:col-span-3 text-white font-semibold py-3 rounded-lg transition transform hover:scale-105 shadow-lg active:scale-95" onmouseover="this.style.background='linear-gradient(to right, #1d4ed8, #1e40af)'" onmouseout="this.style.background='linear-gradient(to right, #2563eb, #1d4ed8)'">
+                                    Apply Filters
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Export Button -->
+                        <button onclick="exportData()" style="background: linear-gradient(to right, #059669, #047857);" class="w-full text-white font-semibold py-3 rounded-lg transition transform hover:scale-105 shadow-lg active:scale-95" onmouseover="this.style.background='linear-gradient(to right, #047857, #065f46)'" onmouseout="this.style.background='linear-gradient(to right, #059669, #047857)'">
+                            Export to CSV
+                        </button>
+
+                        <!-- Expenses List -->
+                        <div id="expensesList" class="space-y-3">
+                            <div class="flex items-center justify-center h-32"><p class="text-slate-500">Loading expenses...</p></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Page -->
+        <div id="analytics-page" class="page-content hidden">
+            <div class="mb-12">
+                <h1 class="text-4xl font-bold mb-2">Analytics</h1>
+                <p class="text-slate-400">Detailed spending analysis and trends</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300">
+                    <h3 class="text-xl font-bold mb-6 text-slate-100">Spending by Category</h3>
+                    <canvas id="categoryChart"></canvas>
+                </div>
+
+                <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300">
+                    <h3 class="text-xl font-bold mb-6 text-slate-100">Daily Spending Trend</h3>
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300">
+                    <h3 class="text-xl font-bold mb-6 text-slate-100">Weekly Breakdown</h3>
+                    <canvas id="weeklyChart"></canvas>
+                </div>
+
+                <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300">
+                    <h3 class="text-xl font-bold mb-6 text-slate-100">Category Statistics</h3>
+                    <div id="categoryStats" class="space-y-4">
+                        <p class="text-slate-500">Loading...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Budgets Page -->
+        <div id="budgets-page" class="page-content hidden">
+            <div class="mb-12">
+                <h1 class="text-4xl font-bold mb-2">Budgets</h1>
+                <p class="text-slate-400">Set and track spending limits</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Add Budget Form -->
+                <div class="lg:col-span-1">
+                    <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-2xl p-8 sticky top-24 shadow-2xl">
+                        <h2 class="text-2xl font-bold mb-3">New Budget</h2>
+                        <p class="text-slate-400 mb-6 text-sm">Set a spending limit</p>
+                        <form id="budgetForm" class="space-y-5">
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-widest mb-3 text-slate-400">Category</label>
+                                <input type="text" id="budgetCategory" required 
+                                    class="w-full px-4 py-4 bg-slate-700 border border-slate-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition text-white placeholder-slate-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-widest mb-3 text-slate-400">Monthly Limit</label>
+                                <input type="number" id="budgetLimit" step="0.01" required 
+                                    class="w-full px-4 py-4 bg-slate-700 border border-slate-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition text-white placeholder-slate-500">
+                            </div>
+                            <button type="submit" style="background: linear-gradient(to right, #2563eb, #1d4ed8);" class="w-full text-white font-semibold py-4 rounded-lg transition transform hover:scale-105 active:scale-95 shadow-lg mt-6" onmouseover="this.style.background='linear-gradient(to right, #1d4ed8, #1e40af)'" onmouseout="this.style.background='linear-gradient(to right, #2563eb, #1d4ed8)'">
+                                Create Budget
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Budgets List -->
+                <div class="lg:col-span-2">
+                    <div id="budgetsList" class="space-y-4">
+                        <div class="flex items-center justify-center h-32"><p class="text-slate-500">Loading budgets...</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Goals Page -->
+        <div id="goals-page" class="page-content hidden">
+            <div class="mb-12">
+                <h1 class="text-4xl font-bold mb-2">Savings Goals</h1>
+                <p class="text-slate-400">Track your financial targets</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Add Goal Form -->
+                <div class="lg:col-span-1">
+                    <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-2xl p-8 sticky top-24 shadow-2xl">
+                        <h2 class="text-2xl font-bold mb-3">New Goal</h2>
+                        <p class="text-slate-400 mb-6 text-sm">Set a savings target</p>
+                        <form id="goalForm" class="space-y-5">
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-widest mb-3 text-slate-400">Goal Name</label>
+                                <input type="text" id="goalName" required 
+                                    class="w-full px-4 py-4 bg-slate-700 border border-slate-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition text-white placeholder-slate-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-widest mb-3 text-slate-400">Target Amount</label>
+                                <input type="number" id="goalTarget" step="0.01" required 
+                                    class="w-full px-4 py-4 bg-slate-700 border border-slate-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition text-white placeholder-slate-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-widest mb-3 text-slate-400">Deadline</label>
+                                <input type="date" id="goalDeadline" required 
+                                    class="w-full px-4 py-4 bg-slate-700 border border-slate-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition text-white placeholder-slate-500">
+                            </div>
+                            <button type="submit" style="background: linear-gradient(to right, #059669, #047857);" class="w-full text-white font-semibold py-4 rounded-lg transition transform hover:scale-105 active:scale-95 shadow-lg mt-6" onmouseover="this.style.background='linear-gradient(to right, #047857, #065f46)'" onmouseout="this.style.background='linear-gradient(to right, #059669, #047857)'">
+                                Create Goal
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Goals List -->
+                <div class="lg:col-span-2">
+                    <div id="goalsList" class="space-y-4">
+                        <div class="flex items-center justify-center h-32"><p class="text-slate-500">Loading goals...</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Page -->
+        <div id="settings-page" class="page-content hidden">
+            <div class="mb-12">
+                <h1 class="text-4xl font-bold mb-2">Settings</h1>
+                <p class="text-slate-400">Customize your experience</p>
+            </div>
+
+            <div class="max-w-2xl">
+                <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl p-8 shadow-lg">
+                    <form id="settingsForm" class="space-y-8">
+                        <div>
+                            <label class="block text-lg font-semibold mb-4 text-slate-100">Currency</label>
+                            <select id="settingsCurrency" class="w-full px-4 py-4 bg-slate-700 border border-slate-600 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition">
+                                <option value="INR">₹ Indian Rupee</option>
+                                <option value="USD">$ US Dollar</option>
+                                <option value="EUR">€ Euro</option>
+                                <option value="GBP">£ British Pound</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-lg font-semibold mb-4 text-slate-100">Theme</label>
+                            <select id="settingsTheme" class="w-full px-4 py-4 bg-slate-700 border border-slate-600 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition">
+                                <option value="dark">Dark Mode</option>
+                                <option value="light">Light Mode</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" style="background: linear-gradient(to right, #2563eb, #1d4ed8);" class="w-full text-white font-semibold py-4 rounded-lg transition transform hover:scale-105 active:scale-95 shadow-lg" onmouseover="this.style.background='linear-gradient(to right, #1d4ed8, #1e40af)'" onmouseout="this.style.background='linear-gradient(to right, #2563eb, #1d4ed8)'">
+                            Save Settings
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 mt-16 bg-slate-950/50">
+        <div class="max-w-7xl mx-auto px-6 py-8 text-center text-slate-500 text-sm">
+            <p>© 2026 FinTracker Pro. Manage your finances smartly.</p>
+        </div>
+    </footer>
+
+    <script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>
