@@ -1,47 +1,93 @@
-from rest_framework.decorators import api_view
+# views.py
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from .models import Expense, Budget, SavingsGoal, UserSettings
 from .serializers import ExpenseSerializer, BudgetSerializer, SavingsGoalSerializer, UserSettingsSerializer
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
 from datetime import timedelta
-from django.db.models import Sum, Count, Avg, Q
+from django.db.models import Sum, Count
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
+from .forms import CustomUserCreationForm  # Custom form with email
+from django.contrib.auth.decorators import login_required
 
+
+
+# ----------------- Frontend Home -----------------
+@login_required(login_url= 'expenses:login')
 def home(request):
     return render(request, 'index.html')
 
-# Expense endpoints
+
+# ----------------- Auth Views -----------------
+def signup_view(request):
+    if request.method == "POST":
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Account created successfully! You can log in now.")
+            return redirect('expenses:login')
+        else:
+            messages.error(request, "Please fix the errors below.")
+    else:
+        form = CustomUserCreationForm()
+    return render(request, 'signup.html', {'form': form})
+
+
+def login_view(request):
+    if request.method == "POST":
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user:
+            login(request, user)
+            return redirect('expenses:home')
+        else:
+            messages.error(request, "Invalid username or password")
+    return render(request, 'login.html')
+
+
+def logout_view(request):
+    logout(request)
+    return redirect('expenses:login')
+
+
+# ----------------- Expenses -----------------
 @api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
 def expense_list(request):
     if request.method == 'GET':
-        expenses = Expense.objects.all().order_by('-date')
-        
-        # Filter by category
+        expenses = Expense.objects.filter(user=request.user).order_by('-date')
+
         category = request.query_params.get('category')
         if category:
             expenses = expenses.filter(category__icontains=category)
-        
-        # Filter by date range
+
         start_date = request.query_params.get('start_date')
         end_date = request.query_params.get('end_date')
         if start_date:
             expenses = expenses.filter(date__gte=start_date)
         if end_date:
             expenses = expenses.filter(date__lte=end_date)
-        
+
         serializer = ExpenseSerializer(expenses, many=True)
         return Response(serializer.data)
 
     if request.method == 'POST':
         serializer = ExpenseSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(user=request.user)
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
 
+
 @api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
 def expense_detail(request, id):
-    expense = get_object_or_404(Expense, id=id)
+    expense = get_object_or_404(Expense, id=id, user=request.user)
 
     if request.method == 'GET':
         serializer = ExpenseSerializer(expense)
@@ -58,41 +104,36 @@ def expense_detail(request, id):
         expense.delete()
         return Response(status=204)
 
-# Analytics endpoint
+
+# ----------------- Analytics -----------------
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def analytics(request):
-    expenses = Expense.objects.all()
-    
-    # Date range filter
+    expenses = Expense.objects.filter(user=request.user)
+
     start_date = request.query_params.get('start_date')
     end_date = request.query_params.get('end_date')
     if start_date:
         expenses = expenses.filter(date__gte=start_date)
     if end_date:
         expenses = expenses.filter(date__lte=end_date)
-    
-    # Overall stats
+
     total = expenses.aggregate(Sum('amount'))['amount__sum'] or 0
     count = expenses.count()
     average = (total / count) if count > 0 else 0
-    
-    # Category breakdown
+
     category_breakdown = expenses.values('category').annotate(
         total=Sum('amount'),
         count=Count('id')
     ).order_by('-total')
-    
-    # Daily breakdown for trend
+
     daily = expenses.extra(select={'date': 'DATE(date)'}).values('date').annotate(total=Sum('amount')).order_by('date')
-    
-    # Weekly breakdown
+
     weekly = {}
     for exp in expenses:
         week = exp.date.isocalendar()[1]
-        if week not in weekly:
-            weekly[week] = 0
-        weekly[week] += exp.amount
-    
+        weekly[week] = weekly.get(week, 0) + exp.amount
+
     return Response({
         'total': total,
         'count': count,
@@ -102,51 +143,57 @@ def analytics(request):
         'weekly_breakdown': weekly
     })
 
-# Budget endpoints
+
+# ----------------- Budget -----------------
 @api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
 def budget_list(request):
     if request.method == 'GET':
-        budgets = Budget.objects.all()
+        budgets = Budget.objects.filter(user=request.user)
         serializer = BudgetSerializer(budgets, many=True)
         return Response(serializer.data)
-    
+
     if request.method == 'POST':
         serializer = BudgetSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(user=request.user)
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
 
+
 @api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
 def budget_detail(request, id):
-    budget = get_object_or_404(Budget, id=id)
-    
+    budget = get_object_or_404(Budget, id=id, user=request.user)
+
     if request.method == 'GET':
         serializer = BudgetSerializer(budget)
         return Response(serializer.data)
-    
+
     if request.method == 'PUT':
         serializer = BudgetSerializer(budget, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
-    
+
     if request.method == 'DELETE':
         budget.delete()
         return Response(status=204)
 
+
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def budget_status(request):
-    budgets = Budget.objects.all()
+    budgets = Budget.objects.filter(user=request.user)
     budget_status_data = []
-    
+
     for budget in budgets:
-        expenses = Expense.objects.filter(category=budget.category)
+        expenses = Expense.objects.filter(user=request.user, category=budget.category)
         spent = expenses.aggregate(Sum('amount'))['amount__sum'] or 0
         remaining = budget.limit - spent
         percentage = (spent / budget.limit * 100) if budget.limit > 0 else 0
-        
+
         budget_status_data.append({
             'id': budget.id,
             'category': budget.category,
@@ -156,55 +203,58 @@ def budget_status(request):
             'percentage': round(percentage, 2),
             'is_exceeded': spent > budget.limit
         })
-    
+
     return Response(budget_status_data)
 
-# Goals endpoints
+
+# ----------------- Savings Goals -----------------
 @api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
 def goal_list(request):
     if request.method == 'GET':
-        goals = SavingsGoal.objects.all()
+        goals = SavingsGoal.objects.filter(user=request.user)
         serializer = SavingsGoalSerializer(goals, many=True)
         return Response(serializer.data)
-    
+
     if request.method == 'POST':
         serializer = SavingsGoalSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(user=request.user)
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
 
+
 @api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
 def goal_detail(request, id):
-    goal = get_object_or_404(SavingsGoal, id=id)
-    
+    goal = get_object_or_404(SavingsGoal, id=id, user=request.user)
+
     if request.method == 'GET':
         serializer = SavingsGoalSerializer(goal)
         return Response(serializer.data)
-    
+
     if request.method == 'PUT':
         serializer = SavingsGoalSerializer(goal, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
-    
+
     if request.method == 'DELETE':
         goal.delete()
         return Response(status=204)
 
-# Settings endpoints
+
+# ----------------- User Settings -----------------
 @api_view(['GET', 'PUT'])
+@permission_classes([IsAuthenticated])
 def user_settings(request):
-    try:
-        settings = UserSettings.objects.first()
-    except:
-        settings = UserSettings.objects.create()
-    
+    settings, created = UserSettings.objects.get_or_create(user=request.user)
+
     if request.method == 'GET':
         serializer = UserSettingsSerializer(settings)
         return Response(serializer.data)
-    
+
     if request.method == 'PUT':
         serializer = UserSettingsSerializer(settings, data=request.data)
         if serializer.is_valid():

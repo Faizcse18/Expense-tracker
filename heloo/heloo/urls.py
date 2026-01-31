@@ -16,12 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from expenses.views import expense_list, home
 
 urlpatterns = [
-              
     path("admin/", admin.site.urls),
-    path('api/', include('expenses.urls')),
-    path('', home),
+    path('', include('expenses.urls')),  # include all app urls at root
 ]
-

@@ -1,7 +1,9 @@
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 class Expense(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank= False)
     CURRENCY_CHOICES = [
         ('INR', '₹ Indian Rupee'),
         ('USD', '$ US Dollar'),
@@ -26,6 +28,7 @@ class Expense(models.Model):
         return f"{self.category} - {self.amount}"
 
 class Budget(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank= False)
     category = models.CharField(max_length=100)
     limit = models.FloatField()
     period = models.CharField(
@@ -40,6 +43,7 @@ class Budget(models.Model):
         return f"{self.category} - {self.limit}"
 
 class SavingsGoal(models.Model):
+    user =models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank= False)
     name = models.CharField(max_length=100)
     target_amount = models.FloatField()
     current_amount = models.FloatField(default=0)
@@ -51,6 +55,7 @@ class SavingsGoal(models.Model):
         return f"{self.name} - {self.current_amount}/{self.target_amount}"
 
 class UserSettings(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank= False)
     currency = models.CharField(max_length=3, choices=Expense.CURRENCY_CHOICES, default='INR')
     theme = models.CharField(max_length=20, choices=[('dark', 'Dark'), ('light', 'Light')], default='dark')
     created_at = models.DateTimeField(auto_now_add=True)
