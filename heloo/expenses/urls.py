@@ -9,28 +9,28 @@ from .views import (
 app_name = 'expenses'
 
 urlpatterns = [
-    # Frontend pages & auth
+    # ---------------- Frontend pages & Auth ----------------
     path('', home, name='home'),
     path('signup/', signup_view, name='signup'),
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
 
-    # Expenses API
-    path('expenses/', expense_list, name='expense-list'),
-    path('expenses/<int:id>/', expense_detail, name='expense-detail'),
+    # ---------------- Expenses API ----------------
+    path('api/expenses/', expense_list, name='expense-list'),
+    path('api/expenses/<int:id>/', expense_detail, name='expense-detail'),
     
-    # Analytics API
-    path('analytics/', analytics, name='analytics'),
+    # ---------------- Analytics API ----------------
+    path('api/analytics/', analytics, name='analytics'),
     
-    # Budgets API
-    path('budgets/', budget_list, name='budget-list'),
-    path('budgets/<int:id>/', budget_detail, name='budget-detail'),
-    path('budget-status/', budget_status, name='budget-status'),
+    # ---------------- Budgets API ----------------
+    path('api/budgets/', budget_list, name='budget-list'),
+    path('api/budgets/<int:id>/', budget_detail, name='budget-detail'),
+    path('api/budget-status/', budget_status, name='budget-status'),
     
-    # Goals API
-    path('goals/', goal_list, name='goal-list'),
-    path('goals/<int:id>/', goal_detail, name='goal-detail'),
+    # ---------------- Goals API ----------------
+    path('api/goals/', goal_list, name='goal-list'),
+    path('api/goals/<int:id>/', goal_detail, name='goal-detail'),
     
-    # Settings API
-    path('settings/', user_settings, name='user-settings'),
+    # ---------------- User Settings API ----------------
+    path('api/settings/', user_settings, name='user-settings'),
 ]
